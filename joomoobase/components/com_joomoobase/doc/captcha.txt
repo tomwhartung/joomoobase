@@ -1,0 +1,151 @@
+         1         2         3         4         5         6         7         8
+....5....0....5....0....5....0....5....0....5....0....5....0....5....0....5....0
+
+                   Joomoo Base Captchas                              Tom Hartung
+                  ----------------------                           February 2010
+
+Joomoo Base supports multiple types of captchas so that if one becomes
+compromised or obsolete for some reason adminstrators can quickly switch to
+another.
+
+ Overview
+==========
+The joomoobase component supports the following types of captchas:
+
+o  OpenCaptcha: http://opencaptcha.com/
+o  reCAPTCHA: http://recaptcha.net/
+  -> requires you obtain Public and Private keys from their site
+      see "Important Note About Setting up reCAPTCHA" below
+
+The captcha_type parameter is set in the back end and determines which captcha
+type the application uses.
+
+ Are You Sure You Want to Use Captcha?
+=======================================
+An overview of Captcha is available at the wikipedia:
+
+   http://en.wikipedia.org/wiki/Captcha
+
+Depending on the application, in many cases it is unnecessary to use captchas.
+
+For example, if the user has javascript enabled, it is a good indication that
+he or she is human and not a bot.  And regarding comment spam, if the ability
+to leave a comment is restricted to users who are logged-in, it should
+not be necessary to verify the user is human.
+
+Having to repeatedly solve captchas can be annoying to users.  It is best to
+set options in the back end so that this annoyance can be kept to a miniumum.
+
+Be sure you consider the culture of your site, understand what the options
+in the backend do with respect to captcha functionality, and set these
+options accordingly.  Remember, if you start to see undesireable people
+logging in and/or leaving comments, it's easy to quickly tighten up
+security by changing these options.
+
+ Pros and Cons of the Captcha Types
+====================================
+OpenCaptcha and reCAPTCHA each have their own advantages and disadvantages.
+
+Advantages and Disadvantages of OpenCaptcha
+-------------------------------------------
+Advantages:
+o  OpenCaptcha does not require creating an account on their site and
+   obtaining public and private keys
+
+Disadvantages:
+o  OpenCaptcha provides no audio alternative for vision-impaired users
+o  Php must be properly configured - see "Troubleshooting" below
+
+Advantages and Disadvantages of reCAPTCHA
+-----------------------------------------
+Advantages:
+o  reCAPTCHA supports an audio alternative for vision impaired users
+o  reCAPTCHA helps the effort to digitize books
+
+Disadvantages:
+o  reCAPTCHA can cause issues on Internet Explorer - see the section on
+   "Troubleshooting"
+
+ Important Note About Setting up reCAPTCHA
+===========================================
+Before using reCAPTCHA you must obtain Public and Private keys from their site
+and plug them into the joomoobase constants.php file, as decribed in the
+following procedure:
+
+1. Visit http://recaptcha.net/
+2. Click on Get reCAPTCHA
+3. Click on the Sign up Now! button at the bottom of the page
+4. If you have an account, log into it, else create a new account
+5. Fill out the form and click on Create Key
+5. Copy and paste your keys into the file
+      components/com_joomoobase/assets/constants.php
+   Update the define statement for RECAPTCHA_PUBLIC_KEY with the value for
+      the public key for your site(s) from recaptcha.net
+   Update the define statement for RECAPTCHA_PRIVATE_KEY with the value for
+      the private key for your site(s) from recaptcha.net
+
+ Troubleshooting
+=================
+Following are solutions to some issues you may encounter using captcha with
+joomoo components.
+
+Possible Issues With OpenCaptcha:
+---------------------------------
+1. The allow_url_fopen option must be set to 'On' in php.ini 
+Symptoms
+If the Use Ajax? option in the back end is set to off, the application behaves
+as if the input string is always wrong.
+If the Use Ajax? option in the back end is set to on, the application displays
+the following message:
+   Warning: file_get_contents() [function.file-get-contents]: URL file-access
+      is disabled in the server configuration
+
+Solution
+Fix this issue by:
+1. setting the allow_url_fopen option to 'On' in php.ini
+2. restarting the web server
+
+Possible Issues With reCaptcha:
+-------------------------------
+reCAPTCHA works best on browsers other than Internet Explorer (IE) when
+javascript is enabled.
+
+1. Pages containing comments do not completely load in IE
+Symptoms
+When loading the page in IE 6, a popup appears stating "Operation Aborted."
+When loading the page in IE 7 or 8, a popup appears stating:
+   Message: HTML Parsing Error: Unable to modify the parent container element
+      before the child element is closed (KB927917)
+
+Solution
+To fix the issue in IE8, it is possible to install a plugin that automatically 
+switches the browser into compatibility mode.  Following is a link where you
+can download this plugin:
+
+   http://extensions.joomla.org/extensions/style-a-design/browsers-a-web-standards/7623
+
+Be sure to enable the new plugin ("System - IE8 Compatibility") under
+Extensions -> Plugin Manager.  Experimentation shows that this may yield
+mixed results, depending on your specific configuration.  It won't help
+IE6&7 much and it seems like IE8 doesn't recognize it right away....
+
+For More Information
+Following link is to a description of what this error message means:
+   http://support.microsoft.com/kb/927917
+
+ Design/Technical Note:
+========================
+The JoomoobaseCaptcha class defined in com_joomoobase/captcha/JoomoobaseCaptcha.php
+does not use inheritance, because the nature of these captchas differs
+significantly.
+
+o  The recaptcha site furnishes us with a library that we do not want to modify
+   the components/com_joomoobase/captcha/recaptcha-php-1.0 contains the contents
+   of the recaptcha-php-1.10.zip ownloaded from their site.
+o  The opencaptcha site furnishes us with example code that we have changed so
+   that it can be used in a similar fashion to that contained in
+   recaptcha-php-1.0 .
+
+The possibility that we may integrate another captcha type will be a good test to
+see how well we have designed a uniform interface to captcha functionality....
+

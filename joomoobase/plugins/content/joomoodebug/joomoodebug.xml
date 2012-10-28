@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="1.7" type="plugin" group="content">
+	<name>plg_content_joomoodebug</name>
+	<author>Tom Hartung</author>
+	<creationDate>March 2010</creationDate>
+	<copyright>Copyright (C) 2009 - 2012 Tom Hartung. All rights reserved.</copyright>
+	<license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
+	<authorEmail>webmaster@tomhartung.com</authorEmail>
+	<authorUrl>www.tomhartung.com</authorUrl>
+	<version>1.7.3</version>
+	<description>Plugin to display contents of arguments passed to content plugins</description>
+	<files>
+		<filename plugin="joomoodebug">joomoodebug.php</filename>
+		<filename>index.html</filename>
+	</files>
+	<config>
+		<fields name="params">
+		</fields>
+	</config>
+</extension>

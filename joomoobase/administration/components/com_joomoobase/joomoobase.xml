@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="component" version="1.7">
+	<name>com_joomoobase</name>
+	<creationDate>May 2010</creationDate>
+	<author>Tom Hartung</author>
+	<authorEmail>webmaster@tomhartung.com</authorEmail>
+	<authorUrl>tomhartung.com</authorUrl>
+	<copyright>Copyright (C) 2009-2012 Tom Hartung. All rights reserved.</copyright>
+	<license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
+	<version>1.1</version>
+	<description>Contains code used by multiple Joomoo Extensions</description>
+	<files folder="site">
+		<filename>index.html</filename>
+		<folder>assets</folder>
+		<folder>captcha</folder>
+		<folder>controllers</folder>
+		<folder>doc</folder>
+		<folder>javascript</folder>
+		<folder>models</folder>
+		<folder>requests</folder>
+		<folder>utilities</folder>
+	</files>
+	<administration>
+		<menu>Joomoo Base (unused)</menu>
+	</administration>
+	<install />
+	<uninstall />
+</extension>

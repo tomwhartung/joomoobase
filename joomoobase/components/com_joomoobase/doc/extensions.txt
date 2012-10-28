@@ -1,0 +1,598 @@
+
+                          Joomoo Extensions                          Tom Hartung
+                         ===================                      March 31, 2010
+
+ Introduction
+==============
+Joomoo extensions build on the functionality of the Joomla Content Management
+System (CMS) and the Mootools Javascript library to provide webmasters with an
+integrated set of extensions that implement basic Web 2.0 functionality.
+
+This file contains preliminary documentation of the following extensions:
+
+o  JoomooBase: contains code shared by all Joomoo extensions
+o  JoomooComments: supports comments on content articles and gallery images
+o  JoomooGallery: displays lists of galleries, pages of gallery groups, and
+   individual gallery images
+o  JoomooRating: allows rating of content articles, gallery groups and images
+o  JoomooSitestyle: allows users to customize the appearance of the site
+
+When time permits, plans call for the building of a website that uses these
+extensions and makes them available for download free of charge.  Plans call
+for that site to provide documentation that is more formal and complete.
+
+ Configurability
+-----------------
+All Joomoo extensions are very flexible.  This document explains how site
+administrators can customize these extensions in the Joomla CMS backend.
+
+Each Joomoo extension also contains a constants.php file that allows site
+administrators to easily fine-tune each extension.
+
+ Compatibility
+---------------
+All Joomoo extensions require the server run PHP5.
+
+Although these extensions make use of Javascript and the Mootools Javascript
+library, they are designed and developed to degrade gracefully and provide
+essential functionality for users who have Javascript disabled in their
+browser.
+
+These extensions were developed in a LAMP (Linux, Apache, MySql, PHP)
+environment.  Due to financial and time constraints, these extensions have
+not been tested running on a Microsoft server (IIS/Windows) or in an
+Apple environment, but it is hoped that they should run fine in those
+environments with little or no modification.
+
+ JoomooBase
+============
+This extension contains two simple content plugins, but its main purpose
+is to provide a library that contains code shared by one or more of the
+other Joomoo extensions.
+
+ Features
+----------
+Joomoobase contains PHP and Javascript code that:
+
+o  Provides a PHP base class for interfacing with the Joomla database API
+o  Supports the construction, sending, and processing of Ajax requests
+o  Serves as a consistent interface for the handling of cookies
+o  Provides a PHP class that interfaces with the Joomla JMail class
+o  Allows the use of two types of CAPTCHA: OpenCaptcha and reCAPTCHA
+   o  Each type has its advantages and disadvantages
+   o  Site administrators can use the Joomla backend to easily switch
+      between one and the other
+
+ Plugins
+---------
+Joomoobase includes two very simple content plugins:
+
+o  joomoosharethis: allows site administrators to put a placeholder in
+   content articles that the plugin replaces with Javascript code for
+   a "share this" button
+   o  Site administrators can download the required Javascript from a
+      site such as sharethis.com
+   o  Administrators then use the Joomla backend to make this Javascript
+      code available to the plugin
+o  joomoodebug: displays parameters passed to Joomla content plugins,
+   and is useful when designing and debugging these plugins
+
+ JoomooShareThis Backend Parameter
+-----------------------------------
+sharethis_url
+    URL (eg. from sharethis.com) that enables users to 'share-this' post
+    Text field
+
+ JoomooComments
+================
+This extension consists of a Joomla component and content plugin that
+support user-generated comments on Joomla content articles and
+JoomooGallery groups and images.
+
+ Features
+----------
+The JoomooComments extension contains PHP and Javascript code that provides:
+
+o  Links for users to "Like" or "Dislike" a comment and a display of
+   the total "Likes" and "Dislikes" for each comment
+o  Links for users to flag comments as spam and maintain a count of the total
+   times users have flagged the comment
+o  Links allowing users to delete their own comments and allowing advanced
+   users to delete any user's comments - in the front end
+o  Backend component functionality allowing site administrators to view, update,
+   and delete comments
+   o  Site administrators can view all comments in a list format
+   o  List provides the ability to sort, filter, and edit comments
+o  Backend plugin parameters that site administrators can use to control the
+   appearance of the comments
+   o  The first_last parameter specifies a maximum number to show
+   o  The minimum_to_hide parameter specifies a minimum number to hide
+o  Advanced backend plugin parameters that allow site administrators to specify
+   restrictions on who can comment, supporting several ways to prevent
+   and combat comment spam
+   o  Site administrators can choose to allow or disallow anonymous comments
+   o  Site administrators can choose to have the plugin send them an email
+      when someone flags a comment as spam
+   o  Plugin can optionally log IP addresses when anonymous users leave a comment
+   o  Site administrators can specify whether to require users solve a
+      CAPTCHA - ie. type one or two words that appear in an image - prove that
+      they are human and not a spambot
+   o  Plugin supports two types of CAPTCHA: OpenCaptcha and reCAPTCHA
+   o  Site administrators can request or force anonymous users to enter an
+      email address when they leave a comment
+   o  Site administrators can request or force all users to enter a website
+      when they leave a comment
+
+The Like, Dislike, Flag as Spam, and Delete links use Ajax to communicate with
+the server.  This means that these links:
+
+o  Respond to the user's actions immediately and without a page refresh
+o  Do not work when the user has Javascript disabled in their browser
+
+ Database Columns
+------------------
+Following are the columns in the jos_joomoocomments table:
+
+Field (note)     Type                   Description
+--------------------------------------------------------------------------------
+id               int(11) unsigned       Standard joomla primary key
+created_by       int(11) unsigned       Foreign key: jos_users table
+name (1)         varchar(50)            Name of user who posted comment
+email (2)        varchar(150)           Email of user who posted comment
+website          varchar(150)           Website of user who posted comment
+ip_address       varchar(40)            IP address of user who posted comment
+text             text                   Text of comment
+contentid        int(11) unsigned       Foreign key: jos_content table
+gallerygroupid   int(11) unsigned       Foreign key: jos_joomoogallerygroups table
+galleryimageid   int(11) unsigned       Foreign key: jos_joomoogalleryimages table
+created          datetime               Date and time user posted comment
+published        tinyint(1) unsigned    Standard joomla published flag
+likes            smallint(5) unsigned   "Like" votes for this comment
+dislikes         smallint(5) unsigned   "Dislike" votes for this comment
+spam             tinyint(3) unsigned    Times this comment has been flagged as spam
+ordering         int(11) unsigned       Standard joomla ordering column
+
+Notes:
+(1) Backend parameters allow site administrators to request or require that
+    registered and/or anonymous users specify a name when they post a comment,
+    so this value does not necessarily match the name in the jos_users table
+(2) Backend parameters allow site administrators to request or require that
+    anonymous posters specify an email address and/or a website
+
+ Basic Backend Parameters
+--------------------------
+all_articles:
+    Allow comments to all articles or use placeholder for specific articles?
+    Options: All articles or Use placeholder
+comment_count_text:
+    Short message containing comment count appended to introductory text;
+        '%cc%' becomes 'xx comments'. Specify 'omit' to omit
+    Text field; default value: "Full article includes %cc% comments"
+ajax_or_full:
+    Use ajax or full request to save and delete comments?
+    Options: Use Ajax request only, Use Full request only, or Allow Either
+email_on_form:
+    Add email field to comment input form?  Applies to anonymous users only,
+        because the database already has email address of logged-in users.
+    Options: Required, Optional, or Omit
+website_on_form:
+    Add website field to comment input form?
+    Options: Required, Optional, or Omit
+first_last:
+    Initially display only the specified number of first or last comments,
+        and provide a link to display all
+    Options: Range from initially show first 90 comments only, to initially
+        show first comment only, to always show all comments, to initially
+        show last comment only, to initially show last 90 comments only
+minimum_to_hide:
+    Minimum number of comments to hide (it seems silly to hide just one or two)
+    Options: Range from hide at least 1 to hide at least 10
+
+ Advanced Backend Parameters:
+------------------------------
+spam_flag_email:
+    Send email (to Global Config->System->Mail from address) when spam flag for
+        a comment is set?
+    Options: Send or Don't Send
+max_consecutive_comments:
+    Maximum number of comments a user can add to an article or gallery image
+        between page reloads
+    Options: Range from 1 to 20 (in increments) to Unlimited
+editable_name:
+    Allow users to edit the name field in the form
+    Options: Editable or Preset and Read-only
+log_ips:
+    Log IP Addresses?  Logging allows site administrators to ban irresponsible
+        users (spammers) by their ip address
+    Options: Always, Anonymous only, or Never
+allow_anonymous:
+    Allow users who aren't logged in to comment?
+    Options: OK or Disallow
+autopub_anonymous:
+    Autopublish comments made by users who aren't logged in?
+    Options: Autopublish or Publish in backend
+honeypot:
+    Include invisible honeypot field on form?
+    Also called 'invisible captcha' this helps prevent comment spam and
+        should in geneal always be set to Yes.
+    Options: Yes (recommended) or No
+require_captcha:
+    Require poster to solve a CAPTCHA?
+    Options: Always, Anonymous only, or Never
+captcha_type:
+    CAPTCHA Type: To use reCaptcha you must download keys from recaptcha.net -
+        see components/com_joomoobase/doc/captcha.txt
+    Options: OpenCaptcha or reCAPTCHA
+
+ JoomooGallery
+===============
+This extension consists of a component that supports three types of views, i.e.,
+menu options:
+
+o  An option to display a list of gallery pages
+o  An option to display a gallery page containing groups of images
+o  An option to display a single image
+
+Clicking on an image displayed on a gallery page causes the component to
+display the single image on a page by itself.  Therefore site administrators
+typically do not assign the option to display a single image to a menu item.
+
+ Features
+----------
+The JoomooGallery extension contains PHP and Javascript code that provides a:
+
+o  Backend component page to:
+   o  List and add, change, and delete gallery groups
+   o  List and add, change, and delete gallery images
+   o  Site administrators can sort and filter both lists as is typical in
+      the backend for other joomla components (e.g., content articles)
+o  Backend component pages allowing site administrators to:
+   o  Enable and disable joomoocomments for specific gallery groups and images
+   o  Enable and disable joomooratings for specific gallery images
+
+When creating a menu option for a gallery page in the backend, site
+administrators can set options such as the following:
+
+o  Image height, in pixels
+o  Whether to display images in a single column or multiple columns
+o  Whether to allow users to resize images with their mouse wheel
+o  Whether to display image groups one at a time or all at once
+
+See the section on Backend Parameters below for a description of each of the
+options that site administrators can set in the backend for this extension.
+
+ Database Tables and Columns
+-----------------------------
+This component uses two database tables, one for gallery groups and another
+for gallery images.
+
+Following are the columns in the jos_joomoogallerygroups table:
+
+Field         Type                   Description
+--------------------------------------------------------------------------------
+id            int(11) unsigned       Standard joomla primary key
+pageid        smallint(2) unsigned   Foreign key: jos_menu
+title         varchar(255)           Gallery group title
+description   text                   Gallery group description
+comments      tinyint(1) unsigned    Joomoo comments flag (allow/disallow)
+columns       smallint(2) unsigned   Number of columns of images in group
+ordering      int(11) unsigned       Standard joomla ordering column
+published     tinyint(1) unsigned    Standard joomla published flag
+
+Following are the columns in the jos_joomoogalleryimages table:
+
+Field         Type                   Description
+--------------------------------------------------------------------------------
+id            int(11) unsigned       Standard joomla primary key
+groupid       smallint(3) unsigned   Foreign key: jos_joomoogallerygroups table
+path          varchar(255)           Image directory path and file name
+title         varchar(255)           Image title
+description   text                   Image description
+comments      tinyint(1) unsigned    Joomoo comments flag (allow/disallow)
+rating        tinyint(1) unsigned    Joomoo rating flag (allow/disallow)
+ordering      int(11) unsigned       Standard joomla ordering column
+date_added    datetime               Date and time when image was added
+published     tinyint(1) unsigned    Standard joomla published flag
+
+ Menu Item (Backend) Parameters
+--------------------------------
+show_description_1
+    Show description_1 after page heading and before help option?
+    Options: Yes or No
+description_1
+    Description for after page heading and before help option
+    Text field
+show_description_2
+    Show description_2 after help option and before images?
+    Options: Yes or No
+description_2
+    Description for after help option and before images
+    Text field
+multi_column_height
+    Initial height of images shown in more than one column
+    Options: Range from 50px to 400px in increments of 25px
+single_column_height
+    Initial height of images shown in a single column
+    Options: Range from 250px to 1000px in increments of 50px
+single_column
+    Display images in a single column?  Overrides number of columns specified
+        for group.
+    Options: Single column or Multiple columns
+show_help
+    Display link allowing user to see help text?
+    Options: Hide or Show
+allow_resizing
+    Allow resizing of image via mouse wheel?
+    Options: Disable or Enable
+all_at_once
+    Show all groups at once or one at a time?
+    Options: One at a time or All at once
+show_group_descriptions
+    Show or hide group descriptions?
+    Options: Hide or Show
+show_image_titles
+    Show or hide image titles?
+    Options: Hide or Show
+show_image_descriptions
+    Show or hide image descriptions?
+    Options: Hide or Show
+image_title_location
+    Where to put image titles?
+    Options: Above Image or Below Image
+
+ JoomooRating
+==============
+This extension consists of a component and two plugins that allow users to
+rate content articles and gallery images on a scale of one to ten.
+
+The rating appears as a series of ten bars, similar to the bars on a cell
+phone that show the strength of the signal.
+
+ Features
+----------
+The JoomooRating extension contains PHP and Javascript code that:
+
+o  Provides users the ability to rate an article or joomoogallery image.
+o  Has backend functionality giving site administrators complete control over:
+   o  Which articles and images can be rated
+   o  How the rating bars appear: color, background, and hover bump
+   o  What the rating rates: Agreeability, Likability, Believability, etc.
+   o  Where the rating appears
+   o  What the various levels mean
+o  A fixed rating plugin, for cases when the rating is a "done deal"
+   o  This is useful, for example, when the rating is irrelevant due to the
+      nature of the article or image, or the type of rating
+   o  Also useful in cases when the site administrator wants to close voting
+      for some reason but wants to preserve the average rating
+
+ Database Columns
+------------------
+Following are the columns in the jos_joomoorating table:
+
+Field            Type               Description
+-----------------------------------------------------------------------
+id               int(11) unsigned   Standard joomla primary key
+contentid        int(11)            Foreign key: jos_content
+galleryimageid   int(11)            Foreign key: jos_joomoogallery
+vote_count       int(11)            Number of votes
+vote_total       int(11)            Total rating value of all votes
+timestamp        timestamp          Date and time stamp
+
+ JoomoooRating Plugin: Basic Backend Parameters
+------------------------------------------------
+all_articles
+    Show rating for all articles or use placeholder for specific articles?
+    Options: All articles or Use placeholder
+rating_label
+    Description of rating
+    Text field
+rating_bar_color
+    Color of rating bars
+    Options: Black, Blue, Green, Red, Yellow, or White
+rating_bar_background
+    Color - or lack thereof - used for background of rating bars
+    Options: Black, Transparent, or White
+where_in_article
+    Where to show article rating - used only when article has no placeholder
+    Options: Above article or Below article 
+where_on_gallery_page
+    Where to show gallery image rating - used when description has no placeholder
+    Options: Above image, Below image, or Below description
+hover_width_bump
+    Number of pixels to add to bar width when user hovers mouse over it
+    Options: Range from 1 to 15 pixels
+ajax_or_full:
+    Use ajax or full request to save and delete comments?
+    Options: Use Ajax request only, Use Full request only, or Allow Either
+allow_anonymous
+    Allow users who aren't logged in to vote on articles and gallery images?
+    Options: OK or Disallow
+max_consecutive_ratings
+    Max times user can vote on a article or gallery image between page loads
+    Options: Range from 1 to 20, or Unlimited
+
+ JoomoooRating Plugin: Advanced Backend Parameters
+---------------------------------------------------
+rating_description_1
+    Description of rating value 1
+    Text Field
+rating_description_2
+    Description of rating value 2
+    Text Field
+rating_description_3
+    Description of rating value 3
+    Text Field
+rating_description_4
+    Description of rating value 4
+    Text Field
+rating_description_5
+    Description of rating value 5
+    Text Field
+rating_description_6
+    Description of rating value 6
+    Text Field
+rating_description_7
+    Description of rating value 7
+    Text Field
+rating_description_8
+    Description of rating value 8
+    Text Field
+rating_description_9
+    Description of rating value 9
+    Text Field
+rating_description_10
+    Description of rating value 10
+    Text Field
+
+ JoomoooFixedRating Plugin: Basic Backend Parameters
+-----------------------------------------------------
+rating_label
+    Description of rating.
+    Text Field
+rating_subtitle
+    Default text to appear beneath rating bars.  Overridable in placeholder.
+    Text Field
+rating_value
+    Default rating value for all articles and gallery images using this plugin.
+        Overridable in placeholder.
+    Options: Range from 1 to 10
+rating_bar_color
+    Color of rating bars.  Idea: choose black or white because these are inactive
+    Options: Black, Blue, Green, Red, Yellow, or White
+rating_bar_background
+    Color - or lack thereof - used for background of rating bars
+    Options: Black, Transparent, or White
+
+ JoomooSiteStyle
+=================
+This extension consists of a Joomla template, component, and module that allow
+users to customize the appearance of the site.
+
+This extension uses Ajax and relies heavily on Javascript and Mootools.  It
+does not degrade as gracefully as the other Joomoo extensions do when the user
+has Javascript disabled.  (The author is willing to improve this, for a fee.)
+
+ Features
+----------
+The JoomooSiteStyle extension allows users to set the following style parameters:
+
+o  Font size
+o  Background color
+o  Border color
+o  Border style
+o  Border width
+
+This extension also allows site administrators to set the following values in
+the backend:
+
+o  Default values for the style parameters that users can set (listed above)
+o  The following additional style and template parameters:
+   o  Link color
+   o  Heading color
+   o  Bullet color
+   o  Input Element color
+o  The following template parameters:
+   o  A tag line above the site name
+   o  The site name
+   o  A tag line below the site name
+
+The backend for the template also allows site administrators to set a parameter
+causing the component and module to save the values for anonymous users in the
+database rather than as a cookie in their browser.  This option is useful for
+sites that have a large number of anonymous users and only a few number of
+registered users.
+
+ Database Columns
+------------------
+Following are the columns in the jos_joomoocomments table:
+
+Field               Type                   Description
+-------------------------------------------------------------------------------
+id                  int(11) unsigned       Standard joomla primary key
+user_id             int(11)                Foreign key: jos_users
+ip_address          varchar(40)            IP address
+background          varchar(20)            Background color
+border_color_name   varchar(20)            Border color
+border_style        varchar(20)            Border style
+border_width        tinyint(1) unsigned    Border width in pixels
+font_size           smallint(2) unsigned   Font size in pixels
+timestamp           timestamp              Date and time stamp
+
+Rather than rely on index tables for the background and border color and style,
+which would be more efficient, this extension stores these parameters as
+literal values.  This has the following advantages:
+
+o  Makes it easier for non-technical people to add colors
+o  Keeps the code simpler and easier to understand and debug
+
+ JoomooSiteStyle Template Backend Parameters
+---------------------------------------------
+heading_color
+    Color to use for headings; should be different than links
+    Options: Blue, Green, Red, or Yellow
+link_color
+    Color to use for links; should be different than headings
+    Options: Blue, Green, Red, or Yellow
+bullet_color
+    Color to use for bullets; match to headings (or links)
+    Options: Blue, Green, Red, or Yellow
+input_color
+    Color to use for input elements; match to links (or headings)
+    Options: Blue, Green, Red, or Yellow
+tag_line_above
+    Tag line above site name, for header on all pages
+site_name
+    Name of site, for header on all pages
+tag_line_below
+    Tag line below site name, for header on all pages
+save_by_ip
+    Save by IP?  Set to Yes to allow saving of parameters for non-logged in
+        users in DB (by ip address)
+    Options: Yes or No
+default_background
+    Default Background Color - user may override if component or module is enabled
+    Options: Image, Black, Dark Blue, Dark Red, Very Dark Green, Very Dark Grey,
+        Navy Blue, Dark Green, Seal Brown, Tyrian Purple, Persian Indigo, Bistre,
+        Dark Scarlet, Army Green, Sapphire, or Falu Red
+default_border_color_name
+    Default Border Color - user may override if component or module is enabled
+    Options: Blue, Green, Red, Yellow, Black, Cobalt, Pine Green,
+        Dark Slate Grey, Slate Grey, Maroon, Grey, Violet, Silver,
+        Shocking Pink, Orange Red, or White
+default_border_style
+    Default Border Style - user may override if component or module is enabled
+    Options: Groove, Ridge, Double, Inset, Outset, Solid, Dashed, Dotted, or None
+default_border_width
+    Default Border Width - user may override if component or module is enabled
+    Options Range from 0 to 30 pixels
+default_font_size
+    Default Font Size - user may override if component or module is enabled
+    Options Range from 60% to 200% in increments of 5%
+
+ JoomooSiteStyle Module Backend Parameters
+-------------------------------------------
+show_font_size
+    Enable changing font size?
+    Options: True or False
+font_size_type
+    Use dropdown or slider to change font size?
+    Options: Dropdown or Slider
+show_background
+    Enable changing background?
+    Options: True or False
+show_border_color
+    Enable changing border color?
+    Options: True or False
+show_border_style
+    Enable changing border style?
+    Options: True or False
+show_border_width
+    Enable changing border width?
+    Options: True or False
+border_width_type
+    Use dropdown or slider to change border width?
+    Options: Dropdown or Slider
+show_reset_all
+    Enable resetting all params to default?
+    Options: True or False
+

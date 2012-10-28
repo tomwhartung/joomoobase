@@ -1,0 +1,33 @@
+/**
+ * @version     $Id: joomoocomments.css,v 1.63 2008/11/18 15:31:53 tomh Exp tomh $
+ * @author      Tom Hartung <webmaster@tomhartung.com>
+ * @package     Joomla
+ * @subpackage  joomoobase
+ * @copyright   Copyright (C) 2008 Tom Hartung. All rights reserved.
+ * @since       1.5
+ * @license     TBD.
+ */
+
+.joomoobase_blink { text-decoration: blink; }
+
+p.joomoosharethis
+{
+	margin-top:   12px;
+	margin-left:  auto;
+	margin-right: auto;
+}
+
+/*
+ * For captcha:
+ */
+div.recaptcha_dark_background
+{
+	background-color: darkred;
+	border:  grey solid 1px;
+	margin:           6px;
+	padding:          6px;
+	width:            90%;
+	margin:        6px;
+	padding:       6px;
+}
+
